@@ -7,75 +7,126 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, sans-serif; background: #f8f8f6; color: #1a1a18; padding: 32px 16px; }
-  .header { max-width: 700px; margin: 0 auto 32px; }
-  h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
-  .course-tag { display: inline-block; background: #eeeeff; border: 1px solid #c8c4f8; color: #4a42b0; border-radius: 6px; font-size: 12px; padding: 3px 10px; margin-bottom: 12px; font-weight: 500; }
-  .desc { font-size: 14px; color: #666; line-height: 1.6; max-width: 560px; }
-  .section { max-width: 700px; margin: 0 auto 28px; }
-  .section-title { font-size: 13px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e8e8e4; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-  .widget-card { background: #fff; border: 1px solid #e0e0dc; border-radius: 12px; padding: 18px; text-decoration: none; color: inherit; display: block; transition: border-color 0.15s, box-shadow 0.15s; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  .header { margin-bottom: 36px; }
+  .course-tag { display: inline-block; background: #eeeeff; border: 1px solid #c8c4f8; color: #4a42b0; border-radius: 6px; font-size: 12px; padding: 3px 10px; margin-bottom: 12px; font-weight: 600; letter-spacing: 0.02em; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .header-desc { font-size: 14px; color: #777; line-height: 1.6; max-width: 520px; }
+
+  .section { margin-bottom: 36px; }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #e8e8e4; }
+  .section-title { font-size: 14px; font-weight: 700; color: #1a1a18; }
+  .section-meta { font-size: 12px; color: #aaa; }
+
+  /* Featured HW card */
+  .hw-card { background: #fff; border: 1px solid #c8c4f8; border-radius: 14px; padding: 22px; margin-bottom: 12px; display: flex; gap: 18px; align-items: flex-start; text-decoration: none; color: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
+  .hw-card:hover { border-color: #9b94f0; box-shadow: 0 3px 12px rgba(100,90,200,0.1); }
+  .hw-icon { width: 48px; height: 48px; border-radius: 12px; background: #eeeeff; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .hw-body { flex: 1; }
+  .hw-label { font-size: 11px; font-weight: 700; color: #7a72d0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .hw-title { font-size: 16px; font-weight: 700; color: #1a1a18; margin-bottom: 5px; }
+  .hw-desc { font-size: 13px; color: #777; line-height: 1.6; }
+  .hw-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .hw-tag { font-size: 11px; background: #f0f0ff; color: #6058c0; border-radius: 4px; padding: 2px 8px; font-weight: 500; }
+  .hw-arrow { font-size: 18px; color: #c0bce8; align-self: center; flex-shrink: 0; }
+
+  /* Widget grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .widget-card { background: #fff; border: 1px solid #e0e0dc; border-radius: 12px; padding: 16px; text-decoration: none; color: inherit; display: block; transition: border-color 0.15s, box-shadow 0.15s; }
   .widget-card:hover { border-color: #a8a4e8; box-shadow: 0 2px 8px rgba(100,90,200,0.08); }
-  .widget-icon { font-size: 24px; margin-bottom: 10px; }
-  .widget-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: #1a1a18; }
+  .widget-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 10px; }
+  .icon-blue { background: #e6f1fb; }
+  .icon-purple { background: #eeeeff; }
+  .icon-orange { background: #fff3e0; }
+  .icon-green { background: #e8f8ee; }
+  .icon-teal { background: #e1f5ee; }
+  .widget-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #1a1a18; }
   .widget-desc { font-size: 12px; color: #888; line-height: 1.5; }
-  .widget-tag { display: inline-block; font-size: 11px; margin-top: 8px; background: #f0f0ff; color: #6058c0; border-radius: 4px; padding: 2px 7px; }
-  .footer { max-width: 700px; margin: 32px auto 0; font-size: 12px; color: #aaa; padding-top: 16px; border-top: 1px solid #e8e8e4; }
+  .widget-tag { display: inline-block; font-size: 11px; margin-top: 8px; background: #f4f4f4; color: #888; border-radius: 4px; padding: 2px 7px; }
+  .widget-tag.interactive { background: #eeeeff; color: #6058c0; }
+  .widget-tag.reference { background: #e8f8ee; color: #2a6a4a; }
+
+  .footer { font-size: 12px; color: #bbb; padding-top: 16px; border-top: 1px solid #e8e8e4; margin-top: 8px; }
+
+  @media(max-width:500px){ h1{font-size:20px;} .hw-card{flex-direction:column;} .hw-icon{width:40px;height:40px;} }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="header">
-  <div class="course-tag">ECE 50024 · Machine Learning</div>
-  <h1>Interactive Learning Materials</h1>
-  <p class="desc">Visual, interactive explorations of key concepts from lecture. Click any widget to open it — no login required. Use these alongside the lecture notes and homework.</p>
-</div>
-
-<div class="section">
-  <div class="section-title">Week — LASSO &amp; Regularization (Exercise 6)</div>
-  <div class="grid">
-
-    <a class="widget-card" href="lasso_contour.html">
-      <div class="widget-icon">◎</div>
-      <div class="widget-title">2D Contour Explorer</div>
-      <div class="widget-desc">See how the ℓ₁ ball and loss ellipses interact as λ changes. Watch the solution path from target to origin.</div>
-      <span class="widget-tag">Interactive</span>
-    </a>
-
-    <a class="widget-card" href="lasso_nonunique.html">
-      <div class="widget-icon">⇔</div>
-      <div class="widget-title">Non-Unique Solutions</div>
-      <div class="widget-desc">Degenerate case A=[1,1]: diagonal loss tubes align with the diamond face, producing a whole segment of solutions.</div>
-      <span class="widget-tag">Interactive</span>
-    </a>
-
-    <a class="widget-card" href="lasso_surface.html">
-      <div class="widget-icon">◈</div>
-      <div class="widget-title">3D Loss Surface</div>
-      <div class="widget-desc">Rotate and tilt the loss surface to see the flat valley at the bottom — every point on it is a valid minimizer.</div>
-      <span class="widget-tag">Interactive</span>
-    </a>
-
-    <a class="widget-card" href="lasso_uniqueness.html">
-      <div class="widget-icon">⊕</div>
-      <div class="widget-title">Unique vs Non-Unique</div>
-      <div class="widget-desc">Side-by-side: full-rank A gives a corner hit (unique), rank-deficient A gives a face hit (segment). Includes what Ex. 6 actually proves.</div>
-      <span class="widget-tag">Reference</span>
-    </a>
-
-    <a class="widget-card" href="lasso_sparse.html">
-      <div class="widget-icon">✦</div>
-      <div class="widget-title">Sparsity Demo</div>
-      <div class="widget-desc">Adjust the target and λ to see when and why one coordinate zeros out first. Drag target to an asymmetric position to get sparsity.</div>
-      <span class="widget-tag">Interactive</span>
-    </a>
-
+  <div class="header">
+    <div class="course-tag">ECE 50024 · Machine Learning · Purdue</div>
+    <h1>Interactive Learning Materials</h1>
+    <p class="header-desc">Visual, interactive explorations of key concepts from lecture and homework. Click any card to open — no login required, works in any browser.</p>
   </div>
-</div>
 
-<div class="footer">
-  Materials generated with Claude · Purdue ECE 50024 · For educational use
-</div>
+  <!-- HW3 Section -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Homework 3</span>
+      <span class="section-meta">LASSO &amp; Regularization</span>
+    </div>
 
+    <!-- Featured Exercise 6 card -->
+    <a class="hw-card" href="hw3_exercise6.html">
+      <div class="hw-icon">📋</div>
+      <div class="hw-body">
+        <div class="hw-label">Exercise 6</div>
+        <div class="hw-title">Optimality of LASSO — Full Walkthrough</div>
+        <div class="hw-desc">Step-by-step proof of parts (a) and (b), the bug in the solution note, what "uniqueness" actually means, and links to all interactive widgets.</div>
+        <div class="hw-tags">
+          <span class="hw-tag">Proof walkthrough</span>
+          <span class="hw-tag">Visual intuition</span>
+          <span class="hw-tag">Common mistakes</span>
+        </div>
+      </div>
+      <div class="hw-arrow">→</div>
+    </a>
+
+    <!-- Widget grid -->
+    <div class="grid">
+      <a class="widget-card" href="lasso_contour.html">
+        <div class="widget-icon icon-blue">◎</div>
+        <div class="widget-title">2D Contour Explorer</div>
+        <div class="widget-desc">ℓ₁ ball vs loss ellipses. Drag λ to watch the solution move from target to origin.</div>
+        <span class="widget-tag interactive">Interactive</span>
+      </a>
+
+      <a class="widget-card" href="lasso_uniqueness.html">
+        <div class="widget-icon icon-purple">⊕</div>
+        <div class="widget-title">Unique vs Non-Unique</div>
+        <div class="widget-desc">Full-rank A gives a corner hit. Rank-deficient A gives a face — infinitely many solutions.</div>
+        <span class="widget-tag reference">Reference</span>
+      </a>
+
+      <a class="widget-card" href="lasso_nonunique.html">
+        <div class="widget-icon icon-orange">⇔</div>
+        <div class="widget-title">Non-Unique Case</div>
+        <div class="widget-desc">A=[1,1] produces diagonal loss tubes that align with the diamond face → solution segment.</div>
+        <span class="widget-tag interactive">Interactive</span>
+      </a>
+
+      <a class="widget-card" href="lasso_surface.html">
+        <div class="widget-icon icon-teal">◈</div>
+        <div class="widget-title">3D Loss Surface</div>
+        <div class="widget-desc">Rotate and tilt to see the flat valley at the bottom — every point on the orange line is a valid minimizer.</div>
+        <span class="widget-tag interactive">Interactive</span>
+      </a>
+
+      <a class="widget-card" href="lasso_sparse.html">
+        <div class="widget-icon icon-green">✦</div>
+        <div class="widget-title">Sparsity Demo</div>
+        <div class="widget-desc">Adjust the target and λ to see when one coordinate zeros out first and why.</div>
+        <span class="widget-tag interactive">Interactive</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="footer">
+    Materials generated with Claude · ECE 50024 Machine Learning · For educational use
+  </div>
+
+</div>
 </body>
 </html>
