@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LASSO — Sparsity Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f8f8f6; color: #1a1a18; padding: 24px 16px; }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: #666; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #e0e0dc; border-radius: 12px; padding: 20px; margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto; }
+  canvas { display: block; width: 100%; }
+  .ctrl { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #555; margin: 10px 0 0; }
+  .ctrl label { min-width: 80px; }
+  .ctrl input[type=range] { flex: 1; }
+  .ctrl span { min-width: 36px; text-align: right; font-weight: 600; color: #1a1a18; }
+  .sol-box { display: inline-block; border-radius: 8px; padding: 6px 14px; font-size: 13px; margin-top: 10px; }
+  .sol-dense { background: #f0f0ff; border: 1px solid #c0c0f0; }
+  .sol-sparse { background: #efffef; border: 1px solid #90d090; }
+  .sol-zero { background: #fff3e0; border: 1px solid #f0c070; }
+  .info { font-size: 13px; color: #555; line-height: 1.7; }
+  .info strong { color: #1a1a18; }
+  h2 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  a.back { font-size: 13px; color: #5a52c0; text-decoration: none; display: inline-block; margin-bottom: 16px; }
+  a.back:hover { text-decoration: underline; }
+  .formula { background: #f8f8f6; border-left: 3px solid #c0c0f0; border-radius: 4px; padding: 10px 14px; font-size: 13px; margin: 10px 0; color: #333; font-family: monospace; }
+</style>
+</head>
+<body>
+<div style="max-width:700px;margin:0 auto">
+  <a class="back" href="index.html">← Back to all materials</a>
+  <h1>LASSO — Sparsity Demo</h1>
+  <p class="subtitle">ECE 50024 · Machine Learning · Exercise 6: Optimality of LASSO</p>
+
+  <div class="card">
+    <canvas id="cv" width="640" height="360"></canvas>
+    <div class="ctrl">
+      <label>λ (penalty)</label>
+      <input type="range" id="lam" min="1" max="280" value="100" step="1">
+      <span id="lam-v">1.00</span>
+    </div>
+    <div class="ctrl">
+      <label>Target x</label>
+      <input type="range" id="tx" min="-180" max="180" value="100" step="1">
+      <span id="tx-v">1.00</span>
+    </div>
+    <div class="ctrl">
+      <label>Target y</label>
+      <input type="range" id="ty" min="-180" max="180" value="50" step="1">
+      <span id="ty-v">0.50</span>
+    </div>
+    <div style="margin-top:10px">
+      <span class="sol-box sol-dense" id="sol-display">Solution: computing…</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>When does sparsity happen?</h2>
+    <p class="info">
+      With A = I (identity), the soft-threshold solution is:
+    </p>
+    <div class="formula">x̂ = sign(tx) · max(0, |tx| − λ/2)<br>ŷ = sign(ty) · max(0, |ty| − λ/2)</div>
+    <p class="info">
+      Each coordinate is zeroed independently when λ/2 exceeds its distance from the origin.
+      <strong>Sparsity emerges when the penalty is large enough to overcome one coordinate but not the other.</strong>
+      Try setting the target asymmetrically (e.g. x=1.0, y=0.3) and increasing λ — y zeros out first because it is closer to the origin.
+      <br><br>
+      The diamond corner on the x-axis gets hit before the y-axis corner because the y-bowl is shallower (target is closer to zero in y). This is the geometric heart of LASSO sparsity.
+    </p>
+  </div>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const W=640,H=360,ox=W/2,oy=H/2+10,sc=120;
+function ts(x,y){return[ox+x*sc,oy-y*sc];}
+function loss(x,y,tx,ty,lam){return(x-tx)**2+(y-ty)**2+lam*(Math.abs(x)+Math.abs(y));}
+function solve(tx,ty,lam){
+  const thresh=lam/2;
+  return[Math.sign(tx)*Math.max(0,Math.abs(tx)-thresh),Math.sign(ty)*Math.max(0,Math.abs(ty)-thresh)];
+}
+
+function draw(){
+  const lam=parseFloat(document.getElementById('lam').value)/100;
+  const tx=parseFloat(document.getElementById('tx').value)/100;
+  const ty=parseFloat(document.getElementById('ty').value)/100;
+  document.getElementById('lam-v').textContent=lam.toFixed(2);
+  document.getElementById('tx-v').textContent=tx.toFixed(2);
+  document.getElementById('ty-v').textContent=ty.toFixed(2);
+
+  const [solX,solY]=solve(tx,ty,lam);
+  const solL=loss(solX,solY,tx,ty,lam);
+  const xZ=Math.abs(solX)<0.005, yZ=Math.abs(solY)<0.005;
+
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,0,0,0.06)'; ctx.lineWidth=0.5;
+  for(let v=-2;v<=2;v+=0.5){
+    ctx.beginPath();let[sx]=ts(v,0);ctx.moveTo(sx,0);ctx.lineTo(sx,H);ctx.stroke();
+    ctx.beginPath();let[,sy]=ts(0,v);ctx.moveTo(0,sy);ctx.lineTo(W,sy);ctx.stroke();
+  }
+  ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(W,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,H);ctx.stroke();
+  ctx.fillStyle='#888';ctx.font='11px system-ui';ctx.textAlign='center';
+  for(let v=-2;v<=2;v++){
+    if(v===0)continue;
+    let[sx]=ts(v,0);ctx.fillText(v,sx,oy+14);
+    let[,sy]=ts(0,v);ctx.fillText(v,ox-14,sy+4);
+  }
+  ctx.fillText('x',W-14,oy-8);ctx.fillText('y',ox+10,14);
+
+  [0.05,0.15,0.3,0.55,0.9,1.4,2.0].forEach((off,i)=>{
+    const tL=solL+off;
+    ctx.beginPath();
+    for(let k=0;k<=300;k++){
+      const t=k/300*2*Math.PI;
+      let lo=0,hi=3;
+      for(let it=0;it<28;it++){const m=(lo+hi)/2;loss(tx+m*Math.cos(t),ty+m*Math.sin(t),tx,ty,lam)<tL?lo=m:hi=m;}
+      const r=(lo+hi)/2,ex=tx+r*Math.cos(t),ey=ty+r*Math.sin(t);
+      const[sx,sy]=ts(ex,ey);k===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);
+    }
+    ctx.closePath();ctx.strokeStyle=`rgba(226,75,74,${0.1+i*0.07})`;ctx.lineWidth=0.8;ctx.stroke();
+  });
+
+  const r=lam/2;
+  [r*0.4,r*0.7,r].forEach((rv,i)=>{
+    const s=i===2;
+    ctx.beginPath();
+    ctx.moveTo(...ts(rv,0));ctx.lineTo(...ts(0,rv));
+    ctx.lineTo(...ts(-rv,0));ctx.lineTo(...ts(0,-rv));ctx.closePath();
+    ctx.strokeStyle=s?'#378ADD':'rgba(55,138,221,0.22)';
+    ctx.lineWidth=s?2:0.7;ctx.setLineDash(s?[6,3]:[3,5]);ctx.stroke();ctx.setLineDash([]);
+  });
+
+  if(xZ||yZ){
+    ctx.strokeStyle='rgba(127,119,221,0.45)';ctx.lineWidth=2.5;ctx.setLineDash([8,4]);
+    if(yZ){ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(W,oy);ctx.stroke();}
+    if(xZ){ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,H);ctx.stroke();}
+    ctx.setLineDash([]);
+    ctx.fillStyle='#7F77DD';ctx.font='11px system-ui';ctx.textAlign='right';
+    if(yZ)ctx.fillText('y=0 (sparse)',W-12,oy-8);
+    if(xZ)ctx.fillText('x=0 (sparse)',ox-8,20);
+  }
+
+  const[ttx,tty]=ts(tx,ty);
+  ctx.beginPath();ctx.arc(ttx,tty,6,0,2*Math.PI);ctx.fillStyle='#1D9E75';ctx.fill();
+  ctx.fillStyle='#1D9E75';ctx.font='11px system-ui';ctx.textAlign='left';
+  ctx.fillText(`target (${tx.toFixed(2)}, ${ty.toFixed(2)})`,ttx+8,tty-8);
+
+  const[sx2,sy2]=ts(solX,solY);
+  ctx.beginPath();ctx.arc(sx2,sy2,9,0,2*Math.PI);ctx.fillStyle='#7F77DD';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#7F77DD';ctx.font='600 12px system-ui';
+  ctx.textAlign=solX>0?'left':'right';
+  ctx.fillText(`(${solX.toFixed(2)}, ${solY.toFixed(2)})`,solX>0?sx2+12:sx2-8,sy2-14);
+
+  const el=document.getElementById('sol-display');
+  if(xZ&&yZ){el.className='sol-box sol-zero';el.textContent='Solution: (0, 0) — fully sparse';}
+  else if(xZ||yZ){el.className='sol-box sol-sparse';el.textContent=`Solution: (${solX.toFixed(2)}, ${solY.toFixed(2)}) — sparse ✓`;}
+  else{el.className='sol-box sol-dense';el.textContent=`Solution: (${solX.toFixed(2)}, ${solY.toFixed(2)}) — dense`;}
+}
+
+['lam','tx','ty'].forEach(id=>document.getElementById(id).addEventListener('input',draw));
+draw();
+</script>
+</body>
+</html>

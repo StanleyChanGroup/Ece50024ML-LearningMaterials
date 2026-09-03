@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LASSO — Uniqueness vs Non-Uniqueness</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f8f8f6; color: #1a1a18; padding: 24px 16px; }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: #666; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #e0e0dc; border-radius: 12px; padding: 20px; margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto; }
+  canvas { display: block; width: 100%; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .subcard { background: #f8f8f6; border-radius: 8px; padding: 12px; font-size: 12px; color: #555; line-height: 1.6; }
+  .subcard strong { display: block; font-size: 13px; color: #1a1a18; font-weight: 600; margin-bottom: 4px; }
+  .info { font-size: 13px; color: #555; line-height: 1.7; }
+  .info strong { color: #1a1a18; }
+  h2 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  a.back { font-size: 13px; color: #5a52c0; text-decoration: none; display: inline-block; margin-bottom: 16px; }
+  a.back:hover { text-decoration: underline; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  th { text-align: left; font-weight: 600; padding: 6px 8px; border-bottom: 1px solid #e0e0dc; color: #1a1a18; }
+  td { padding: 6px 8px; border-bottom: 1px solid #f0f0ec; color: #555; }
+  td:first-child { font-weight: 500; color: #1a1a18; }
+  @media(max-width:500px){ .grid2{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div style="max-width:700px;margin:0 auto">
+  <a class="back" href="index.html">← Back to all materials</a>
+  <h1>LASSO — Unique vs Non-Unique</h1>
+  <p class="subtitle">ECE 50024 · Machine Learning · Exercise 6: Optimality of LASSO</p>
+
+  <div class="card">
+    <canvas id="cv" width="640" height="300"></canvas>
+    <div class="grid2">
+      <div class="subcard"><strong>Full-rank A (left)</strong>Elliptical contours hit the ℓ₁ diamond at a corner → unique sparse solution. One coordinate is forced to exactly zero.</div>
+      <div class="subcard"><strong>Rank-deficient A=[1,1] (right)</strong>Diagonal tube contours align with the diamond face → whole orange segment of solutions. The exercise's contradiction never fires because all solutions share Aθ = Aβ.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>What Exercise 6 actually proves</h2>
+    <p class="info">
+      Parts (a) and (b) together show: any two minimizers θ, β must satisfy <strong>Aθ = Aβ</strong> and <strong>‖θ‖₁ = ‖β‖₁</strong>. The proof never claims θ = β as vectors — only that their predictions and ℓ₁ norms match.
+      <br><br>
+      The non-unique case (right panel) is fully consistent: every point on the orange segment satisfies both conditions. The "contradiction" in the proof only fires when Aθ ≠ Aβ, which never happens here.
+    </p>
+    <table>
+      <tr><th>Property</th><th>Full-rank A</th><th>Rank-deficient A</th></tr>
+      <tr><td>Unique value c*</td><td>✓ Yes</td><td>✓ Yes</td></tr>
+      <tr><td>Unique predictions Aθ</td><td>✓ Yes</td><td>✓ Yes</td></tr>
+      <tr><td>Unique ‖θ‖₁</td><td>✓ Yes</td><td>✓ Yes</td></tr>
+      <tr><td>Unique solution vector θ</td><td>✓ Yes</td><td>✗ No</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const W=640, H=300;
+
+ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+const textC='#555', axisC='rgba(0,0,0,0.18)', gridC='rgba(0,0,0,0.06)';
+
+function panel(ox,oy,sc,drawFn){
+  ctx.strokeStyle=gridC; ctx.lineWidth=0.5;
+  for(let v=-2;v<=2;v+=0.5){
+    ctx.beginPath(); ctx.moveTo(ox+v*sc,oy-2.2*sc); ctx.lineTo(ox+v*sc,oy+2.2*sc); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox-2.2*sc,oy-v*sc); ctx.lineTo(ox+2.2*sc,oy-v*sc); ctx.stroke();
+  }
+  ctx.strokeStyle=axisC; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(ox-2.2*sc,oy); ctx.lineTo(ox+2.2*sc,oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox,oy-2.2*sc); ctx.lineTo(ox,oy+2.2*sc); ctx.stroke();
+  ctx.fillStyle=textC; ctx.font='11px system-ui'; ctx.textAlign='center';
+  ctx.fillText('x',ox+2.2*sc-8,oy-8); ctx.fillText('y',ox+10,oy-2.2*sc+14);
+  drawFn(ox,oy,sc);
+}
+
+function diamond(ox,oy,sc,r,col,dash){
+  ctx.beginPath();
+  ctx.moveTo(ox+r*sc,oy); ctx.lineTo(ox,oy-r*sc);
+  ctx.lineTo(ox-r*sc,oy); ctx.lineTo(ox,oy+r*sc); ctx.closePath();
+  ctx.strokeStyle=col; ctx.lineWidth=2; ctx.setLineDash(dash||[]); ctx.stroke(); ctx.setLineDash([]);
+}
+
+panel(160,150,88,(ox,oy,sc)=>{
+  const tx=0.9,ty=0.5,r=0.5;
+  [0.08,0.2,0.4,0.7,1.1].forEach((l,i)=>{
+    ctx.beginPath();
+    for(let k=0;k<=200;k++){
+      const t=k/200*2*Math.PI, ex=tx+Math.sqrt(l)*Math.cos(t), ey=ty+Math.sqrt(l)*0.55*Math.sin(t);
+      k===0?ctx.moveTo(ox+ex*sc,oy-ey*sc):ctx.lineTo(ox+ex*sc,oy-ey*sc);
+    }
+    ctx.closePath(); ctx.strokeStyle=`rgba(226,75,74,${0.12+i*0.08})`; ctx.lineWidth=0.8; ctx.stroke();
+  });
+  diamond(ox,oy,sc,r,'#378ADD',[6,3]);
+  ctx.beginPath(); ctx.arc(ox+r*sc,oy,8,0,2*Math.PI); ctx.fillStyle='#7F77DD'; ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#7F77DD'; ctx.font='600 11px system-ui'; ctx.textAlign='left';
+  ctx.fillText('unique solution',ox+r*sc+10,oy-10);
+  ctx.fillStyle='#1D9E75'; ctx.beginPath(); ctx.arc(ox+tx*sc,oy-ty*sc,5,0,2*Math.PI); ctx.fill();
+  ctx.fillStyle=textC; ctx.font='600 12px system-ui'; ctx.textAlign='center';
+  ctx.fillText('Full-rank A',ox,oy+2.2*sc-10);
+});
+
+panel(480,150,88,(ox,oy,sc)=>{
+  const r=0.5;
+  [0.05,0.15,0.3,0.55,0.9].forEach((hw,i)=>{
+    [0,hw*2,-hw*2].forEach((off,j)=>{
+      ctx.beginPath();
+      for(let k=0;k<=200;k++){
+        const t=-2+4*(k/200), ex=t, ey=(1+off)-t;
+        if(ey<-2||ey>2){ctx.moveTo(ox+ex*sc,oy-ey*sc);return;}
+        k===0?ctx.moveTo(ox+ex*sc,oy-ey*sc):ctx.lineTo(ox+ex*sc,oy-ey*sc);
+      }
+      ctx.strokeStyle=j===0?`rgba(226,75,74,${0.1+i*0.07})`:`rgba(226,75,74,${0.04+i*0.03})`;
+      ctx.lineWidth=j===0?0.9:0.4; ctx.stroke();
+    });
+  });
+  diamond(ox,oy,sc,r,'#378ADD',[6,3]);
+  const [sx1,sy1]=[ox+r*sc,oy], [sx2,sy2]=[ox,oy-r*sc];
+  ctx.beginPath(); ctx.moveTo(sx1,sy1); ctx.lineTo(sx2,sy2);
+  ctx.strokeStyle='#EF9F27'; ctx.lineWidth=5; ctx.lineCap='round'; ctx.stroke(); ctx.lineCap='butt';
+  ctx.beginPath(); ctx.arc(sx1,sy1,5,0,2*Math.PI); ctx.fillStyle='#EF9F27'; ctx.fill();
+  ctx.beginPath(); ctx.arc(sx2,sy2,5,0,2*Math.PI); ctx.fillStyle='#EF9F27'; ctx.fill();
+  ctx.fillStyle='#EF9F27'; ctx.font='600 11px system-ui'; ctx.textAlign='center';
+  ctx.fillText('∞ solutions',(sx1+sx2)/2+20,(sy1+sy2)/2-14);
+  ctx.fillStyle='#1D9E75'; ctx.beginPath(); ctx.arc(ox+0.5*sc,oy-0.5*sc,5,0,2*Math.PI); ctx.fill();
+  ctx.fillStyle=textC; ctx.font='600 12px system-ui'; ctx.textAlign='center';
+  ctx.fillText('Rank-deficient A=[1,1]',ox,oy+2.2*sc-10);
+});
+</script>
+</body>
+</html>
